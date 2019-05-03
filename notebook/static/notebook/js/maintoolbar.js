@@ -78,6 +78,7 @@ define([
             .append($('<option/>').attr('value','markdown').text(i18n.msg._('Markdown')))
             .append($('<option/>').attr('value','raw').text(i18n.msg._('Raw NBConvert')))
             .append($('<option/>').attr('value','heading').text(i18n.msg._('Heading')))
+            .append($('<option/>').attr('value','literate').text(i18n.msg._('Literate'))) // new cell type
             .append(multiselect);
         this.notebook.keyboard_manager.register_events(sel);
         this.events.on('selected_cell_type_changed.Notebook', function (event, data) {
@@ -116,6 +117,9 @@ define([
                 that.notebook.to_heading();
                 sel.val('markdown');
                 break;
+            case 'literate':
+                // TODO: do something here
+                that.notebook.cells_to_literate();
             case 'multiselect':
                 break;
             default:

@@ -1315,6 +1315,9 @@ define([
             case 'raw':
                 cell = new textcell.RawCell(cell_options);
                 break;
+            case 'literate'
+                cell = new textcell.LiterateCell(cell_options);
+                break;
             default:
                 console.log("Unrecognized cell type: ", type, cellmod);
                 cell = new cellmod.UnrecognizedCell(cell_options);
@@ -1569,6 +1572,65 @@ define([
         }
     };
     
+    /**
+     * Turn one or more cells into literate.
+     *
+     * @param {Array} indices - cell indices to convert
+     */
+    Notebook.prototype.cells_to_literate = function (indices) {
+        if (indices === undefined) {
+            indices = this.get_selected_cells_indices();
+        }
+
+        for(var i=0; i < indices.length; i++) {
+            this.to_literate(indices[i]);
+        }
+     };
+
+    /**
+     * Turn a cell into a literate cell.
+     * 
+     * @param {integer} [index] - cell index
+     */
+    Notebook.prototype.to_literate = function (index) {
+        var i = this.index_or_selected(index);
+
+        // TODO: understand this
+
+        /*
+        if (this.is_valid_cell_index(i)) {
+            var source_cell = this.get_cell(i);
+
+            if (!(source_cell instanceof textcell.MarkdownCell) && source_cell.is_editable()) {
+                var target_cell = this.insert_cell_below('markdown',i);
+                var text = source_cell.get_text();
+
+                if (text === source_cell.placeholder) {
+                    text = '';
+                }
+                // metadata
+                target_cell.metadata = source_cell.metadata;
+                target_cell.attachments = source_cell.attachments;
+
+                // We must show the editor before setting its contents
+                target_cell.unrender();
+                target_cell.set_text(text);
+                // make this value the starting point, so that we can only undo
+                // to this state, instead of a blank cell
+                target_cell.code_mirror.clearHistory();
+                source_cell.element.remove();
+                this.select(i);
+                if ((source_cell instanceof textcell.TextCell) && source_cell.rendered) {
+                    target_cell.render();
+                }
+                var cursor = source_cell.code_mirror.getCursor();
+                target_cell.code_mirror.setCursor(cursor);
+                this.set_dirty(true);
+            }
+        }
+        */
+    };
+
     /**
      * Warn about heading cell support removal.
      */

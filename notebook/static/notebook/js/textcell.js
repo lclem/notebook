@@ -589,7 +589,8 @@ define([
     var textcell = {
         TextCell: TextCell,
         MarkdownCell: MarkdownCell,
-        RawCell: RawCell
+        RawCell: RawCell,
+        LiterateCell: MarkdownCell // render literate cells as markdown cells
     };
     return textcell;
 });

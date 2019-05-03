@@ -386,6 +386,14 @@ define([
                 env.notebook.cells_to_raw();
             }
         },
+        'change-cell-to-literate' : {
+            cmd: i18n.msg._('change cell to literate'),
+            help    : i18n.msg._('change cell to literate'),
+            help_index : 'cb', // TODO: ??
+            handler : function (env) {
+                env.notebook.cells_to_literate();
+            }
+        },
         'change-cell-to-heading-1' : {
             cmd: i18n.msg._('change cell to heading 1'),
             help    : i18n.msg._('change cell to heading 1'),
