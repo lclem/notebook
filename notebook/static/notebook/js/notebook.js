@@ -1315,7 +1315,7 @@ define([
             case 'raw':
                 cell = new textcell.RawCell(cell_options);
                 break;
-            case 'literate'
+            case 'literate':
                 cell = new textcell.LiterateCell(cell_options);
                 break;
             default:
