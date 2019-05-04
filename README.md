@@ -1,3 +1,20 @@
+# This fork
+
+We add one new type of cells, namely *literate cells*.
+Those are classical Markdown cells, with a new *executable code chunk* construct of the following form (remove the `>`)
+```
+>````
+>code
+>````
+```
+When a literate cell is evaluated, its contents are pretty-printed according to the Markdown format,
+and additionally all executable code chunks within that cell are evaluated as if they formed a standard code cell.
+The result of the evaluation of the executable chunks is then displayed below the literate cell in the same fashion as for code cells.
+
+Thus, literate cells are a hybrid between Markodown cells and code cells.
+This is a language-agnostic feature.
+
+
 # Jupyter Notebook
 
 [![Google Group](https://img.shields.io/badge/-Google%20Group-lightgrey.svg)](https://groups.google.com/forum/#!forum/jupyter)
