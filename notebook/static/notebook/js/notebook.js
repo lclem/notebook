@@ -15,6 +15,7 @@ define([
     './cell',
     './textcell',
     './codecell',
+//    './literatecell',
     'moment',
     'services/config',
     'services/sessions/session',
@@ -43,6 +44,7 @@ define([
     cellmod,
     textcell,
     codecell,
+//    literatecell,
     moment,
     configmod,
     session,
@@ -1315,9 +1317,9 @@ define([
             case 'raw':
                 cell = new textcell.RawCell(cell_options);
                 break;
-            case 'literate':
-                cell = new textcell.LiterateCell(cell_options);
-                break;
+//            case 'literate':
+//                cell = new literatecell.LiterateCell(this.kernel, cell_options);
+//                break;
             default:
                 console.log("Unrecognized cell type: ", type, cellmod);
                 cell = new cellmod.UnrecognizedCell(cell_options);
@@ -1593,16 +1595,15 @@ define([
      * @param {integer} [index] - cell index
      */
     Notebook.prototype.to_literate = function (index) {
+
+        // copied from to_markdown
+        
         var i = this.index_or_selected(index);
-
-        // TODO: understand this
-
-        /*
         if (this.is_valid_cell_index(i)) {
             var source_cell = this.get_cell(i);
 
-            if (!(source_cell instanceof textcell.MarkdownCell) && source_cell.is_editable()) {
-                var target_cell = this.insert_cell_below('markdown',i);
+            if (!(source_cell instanceof textcell.LiterateCell) && source_cell.is_editable()) {
+                var target_cell = this.insert_cell_below('literate',i);
                 var text = source_cell.get_text();
 
                 if (text === source_cell.placeholder) {
@@ -1628,7 +1629,6 @@ define([
                 this.set_dirty(true);
             }
         }
-        */
     };
 
     /**
@@ -1917,7 +1917,7 @@ define([
         // The following should not happen as the menu item is greyed out
         // when those conditions are not fullfilled (see MarkdownCell
         // unselect/select/unrender handlers)
-        if (cell.cell_type !== 'markdown') {
+        if (cell.cell_type !== 'markdown') { // TODO: insert image in literate cell
             console.log('Error: insert_image called on non-markdown cell');
             return;
         }
