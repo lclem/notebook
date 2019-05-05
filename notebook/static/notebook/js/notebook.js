@@ -1277,6 +1277,8 @@ define([
      */
     Notebook.prototype.insert_cell_at_index = function(type, index){
 
+        console.log("Inserting a new cell of type: ", type);
+
         var ncells = this.ncells();
         index = Math.min(index, ncells);
         index = Math.max(index, 0);

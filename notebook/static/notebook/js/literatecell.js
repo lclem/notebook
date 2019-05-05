@@ -46,6 +46,7 @@ define([
     var Cell = cell.Cell;
     var CodeCell = codecell.CodeCell;
     var MarkdownCell = textcell.MarkdownCell;
+    var TextCell = textcell.TextCell;
 
     var LiterateCell = function (kernel, options) {
 
@@ -89,10 +90,9 @@ define([
 
     LiterateCell.prototype = Object.create(CodeCell.prototype);
 
-    LiterateCell.prototype.fromJSON = CodeCell.prototype.fromJSON;
-    LiterateCell.prototype.toJSON = CodeCell.prototype.toJSON;
+    LiterateCell.prototype.output_area = null;
 
-    LiterateCell.prototype.set_rendered = MarkdownCell.prototype.set_rendered;
+    LiterateCell.prototype.set_rendered = TextCell.prototype.set_rendered;
     LiterateCell.prototype.unrender = MarkdownCell.prototype.unrender;
     LiterateCell.prototype.add_attachment = MarkdownCell.prototype.add_attachment
     LiterateCell.prototype.select = MarkdownCell.prototype.select;
@@ -101,72 +101,12 @@ define([
     LiterateCell.prototype.set_heading_level = MarkdownCell.prototype.set_heading_level;
     LiterateCell.prototype.insert_inline_image_from_blob = MarkdownCell.prototype.insert_inline_image_from_blob;
     LiterateCell.prototype.bind_events = MarkdownCell.prototype.bind_events;
+    //LiterateCell.prototype.fromJSON = MarkdownCell.prototype.fromJSON;
+    //LiterateCell.prototype.toJSON = MarkdownCell.prototype.toJSON;
 
     LiterateCell.prototype.create_element = function () {
 
         CodeCell.prototype.create_element_core.call(this, 'literate_cell', LiterateCell.options_default.cm_config);
-
-        /*
-        var cell =  $('<div></div>').addClass('cell literate_cell');
-        cell.attr('tabindex','2');
-
-        var input = $('<div></div>').addClass('input');
-        this.input = input;
-
-        var prompt_container = $('<div/>').addClass('prompt_container');
-
-        var run_this_cell = $('<div></div>').addClass('run_this_cell');
-        run_this_cell.prop('title', 'Run this cell');
-        run_this_cell.append('<i class="fa-step-forward fa"></i>');
-        run_this_cell.click(function (event) {
-            event.stopImmediatePropagation();
-            that.execute();
-        });
-
-        var prompt = $('<div/>').addClass('prompt input_prompt');
-        
-        var inner_cell = $('<div/>').addClass('inner_cell');
-        this.celltoolbar = new celltoolbar.CellToolbar({
-            cell: this, 
-            notebook: this.notebook});
-        inner_cell.append(this.celltoolbar.element);
-        var input_area = $('<div/>').addClass('input_area');
-        this.input_area = input_area;
-        
-        this.code_mirror = new CodeMirror(input_area.get(0), this._options.cm_config);
-        // In case of bugs that put the keyboard manager into an inconsistent state,
-        // ensure KM is enabled when CodeMirror is focused:
-        this.code_mirror.on('focus', function () {
-            if (that.keyboard_manager) {
-                that.keyboard_manager.enable();
-            }
-
-            that.code_mirror.setOption('readOnly', !that.is_editable());
-        });
-        this.code_mirror.on('keydown', $.proxy(this.handle_keyevent,this));
-        $(this.code_mirror.getInputField()).attr("spellcheck", "false");
-
-        inner_cell.append(input_area);
-        this.inner_cell = inner_cell;
-        prompt_container.append(prompt).append(run_this_cell);
-
-//        if(cell_type === 'code_cell')
-//            input.append(prompt_container);
-        
-        input.append(inner_cell);
-
-        var output = $('<div></div>');
-        cell.append(input).append(output);
-        this.element = cell;
-        this.output_area = new outputarea.OutputArea({
-            config: this.config,
-            selector: output,
-            prompt_area: true,
-            events: this.events,
-            keyboard_manager: this.keyboard_manager,
-        });
-        this.completer = new completer.Completer(this, this.events);
-        */
 
         var render_area = $('<div/>').addClass('text_cell_render rendered_html').attr('tabindex','-1');
         this.inner_cell.append(render_area); 
@@ -226,6 +166,47 @@ define([
         cont = MarkdownCell.prototype.render_core.call(this, code);
         return cont;
         
+    };
+
+    CodeCell.prototype.fromJSON = function (data) {
+        MarkdownCell.prototype.fromJSON.apply(this, arguments);
+        if (data.cell_type === 'literate') { // NEW
+            if (data.source !== undefined) {
+                //this.set_text(data.source);
+                // make this value the starting point, so that we can only undo
+                // to this state, instead of a blank cell
+                this.code_mirror.clearHistory();
+                this.auto_highlight();
+            }
+            this.set_input_prompt(data.execution_count);
+            this.output_area.trusted = data.metadata.trusted || false;
+            this.output_area.fromJSON(data.outputs, data.metadata);
+        }
+    };
+
+    CodeCell.prototype.toJSON = function () {
+        var data = MarkdownCell.prototype.toJSON.apply(this);
+        //data.source = this.get_text();
+        // is finite protect against undefined and '*' value
+        if (isFinite(this.input_prompt_number)) {
+            data.execution_count = this.input_prompt_number;
+        } else {
+            data.execution_count = null;
+        }
+        var outputs = this.output_area.toJSON();
+        data.outputs = outputs;
+        data.metadata.trusted = this.output_area.trusted;
+        if (this.output_area.collapsed) {
+            data.metadata.collapsed = this.output_area.collapsed;
+        } else {
+            delete data.metadata.collapsed;
+        }
+        if (this.output_area.scroll_state === 'auto') {
+            delete data.metadata.scrolled;
+        } else {
+            data.metadata.scrolled = this.output_area.scroll_state;
+        }
+        return data;
     };
 
     return {'LiterateCell' : LiterateCell};
