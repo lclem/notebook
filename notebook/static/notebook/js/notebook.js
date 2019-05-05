@@ -1860,7 +1860,7 @@ define([
         }
 
         // Update the contents of the target cell
-        if (target instanceof codecell.CodeCell || target instanceof literatecell.LiterateCell) {
+        if (target instanceof codecell.CodeCell) {
             target.set_text(contents.join('\n\n'));
         } else {
             var was_rendered = target.rendered;
@@ -2232,14 +2232,17 @@ define([
     Notebook.prototype._dispatch_mode = function(spec, newmode){
         this.codemirror_mode = newmode;
         codecell.CodeCell.options_default.cm_config.mode = newmode;
-        literatecell.LiterateCell.options_default.cm_config.mode = newmode; // NEW
         this.get_cells().map(function(cell) {
-            if (cell.cell_type === 'code' || cell.cell_type === 'literate'){ // NEW
+            if (cell.cell_type === 'code'){
                 cell.code_mirror.setOption('mode', spec);
                 // This is currently redundant, because cm_config ends up as
                 // codemirror's own .options object, but I don't want to
                 // rely on that.
                 cell._options.cm_config.mode = spec;
+            }
+            else if (cell.cell_type === 'literate'){
+                cell.code_mirror.setOption('mode', 'ipythongfm');
+                cell._options.cm_config.mode = 'ipythongfm';
             }
         });
 

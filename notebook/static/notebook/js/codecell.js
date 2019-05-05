@@ -151,7 +151,7 @@ define([
 
     CodeCell.prototype.output_area = null;
 
-    CodeCell.prototype.create_element_gen = function (cell_type) {
+    CodeCell.prototype.create_element_core = function (cell_type, cm_config) {
         Cell.prototype.create_element.call(this);
         var that = this;
 
@@ -179,7 +179,7 @@ define([
             notebook: this.notebook});
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
-        this.code_mirror = new CodeMirror(input_area.get(0), this._options.cm_config);
+        this.code_mirror = new CodeMirror(input_area.get(0), cm_config);
         // In case of bugs that put the keyboard manager into an inconsistent state,
         // ensure KM is enabled when CodeMirror is focused:
         this.code_mirror.on('focus', function () {
@@ -194,10 +194,7 @@ define([
         inner_cell.append(input_area);
         this.inner_cell = inner_cell;
         prompt_container.append(prompt).append(run_this_cell);
-
-        if(cell_type === 'code')
-            input.append(prompt_container);
-        
+        input.append(prompt_container);      
         input.append(inner_cell);
 
         var output = $('<div></div>');
@@ -215,7 +212,7 @@ define([
 
     /** @method create_element */
     CodeCell.prototype.create_element = function () {
-        CodeCell.prototype.create_element_gen.call(this, 'code_cell');
+        CodeCell.prototype.create_element_core.call(this, 'code_cell', this._options.cm_config);
     }
     
     
@@ -568,7 +565,7 @@ define([
 
     CodeCell.prototype.fromJSON = function (data) {
         Cell.prototype.fromJSON.apply(this, arguments);
-        if (data.cell_type === 'code' || data.cell_type === 'literate') { // NEW
+        if (data.cell_type === 'code') { // NEW
             if (data.source !== undefined) {
                 this.set_text(data.source);
                 // make this value the starting point, so that we can only undo

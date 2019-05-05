@@ -446,7 +446,7 @@ define([
 
         var cont = TextCell.prototype.render.apply(this);
         if (cont) {
-            MarkdownCell.prototype.render_core.apply(this, this.get_text());
+            MarkdownCell.prototype.render_core.call(this, this.get_text());
         }
         
         return cont;
@@ -600,7 +600,6 @@ define([
         TextCell: TextCell,
         MarkdownCell: MarkdownCell,
         RawCell: RawCell,
-        LiterateCell: MarkdownCell // render literate cells as markdown cells
     };
     return textcell;
 });
