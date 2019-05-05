@@ -225,6 +225,9 @@ data-notebook-path="{{notebook_path | urlencode}}"
                               <li id="to_raw"
                                   title="{% trans %}Contents will pass through nbconvert unmodified{% endtrans %}">
                                   <a href="#">{% trans %}Raw NBConvert{% endtrans %}</a></li>
+                              <li id="to_literate"
+                                  title="{% trans %}Contents will be rendered as HTML, executable code chunks will be sent to the kernel for execution, and output will display in the footer of cell{% endtrans %}">
+                                  <a href="#">{% trans %}Literate{% endtrans %}</a></li>
                             </ul>
                         </li>
                         <li class="divider"></li>

@@ -188,6 +188,8 @@ class Notebook:
             self.current_cell.send_keys("r")
         elif cell_type == "code":
             self.current_cell.send_keys("y")
+        elif cell_type == "literate":
+            self.current_cell.send_keys("l")
         else:
             raise CellTypeError(("{} is not a valid cell type,"
                                  "use 'code', 'markdown', or 'raw'").format(cell_type))

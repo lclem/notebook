@@ -389,7 +389,7 @@ define([
         'change-cell-to-literate' : {
             cmd: i18n.msg._('change cell to literate'),
             help    : i18n.msg._('change cell to literate'),
-            help_index : 'cb', // TODO: ??
+            help_index : 'cj', // TODO: ??
             handler : function (env) {
                 env.notebook.cells_to_literate();
             }

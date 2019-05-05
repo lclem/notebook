@@ -118,8 +118,8 @@ define([
                 sel.val('markdown');
                 break;
             case 'literate':
-                // TODO: do something here
-                that.notebook.cells_to_literate();
+                that.notebook.cells_to_literate(); // NEW
+                break;
             case 'multiselect':
                 break;
             default:

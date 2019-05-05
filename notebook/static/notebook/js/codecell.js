@@ -107,7 +107,6 @@ define([
         // even if null for V8 VM optimisation
         this.input_prompt_number = null;
         this.celltoolbar = null;
-        this.output_area = null;
 
         this.last_msg_id = null;
         this.completer = null;
@@ -149,13 +148,14 @@ define([
     CodeCell.msg_cells = {};
 
     CodeCell.prototype = Object.create(Cell.prototype);
-    
-    /** @method create_element */
-    CodeCell.prototype.create_element = function () {
-        Cell.prototype.create_element.apply(this, arguments);
+
+    CodeCell.prototype.output_area = null;
+
+    CodeCell.prototype.create_element_gen = function (cell_type) {
+        Cell.prototype.create_element.call(this);
         var that = this;
 
-        var cell =  $('<div></div>').addClass('cell code_cell');
+        var cell =  $('<div></div>').addClass('cell ' + cell_type);
         cell.attr('tabindex','2');
 
         var input = $('<div></div>').addClass('input');
@@ -192,8 +192,13 @@ define([
         this.code_mirror.on('keydown', $.proxy(this.handle_keyevent,this));
         $(this.code_mirror.getInputField()).attr("spellcheck", "false");
         inner_cell.append(input_area);
+        this.inner_cell = inner_cell;
         prompt_container.append(prompt).append(run_this_cell);
-        input.append(prompt_container).append(inner_cell);
+
+        if(cell_type === 'code')
+            input.append(prompt_container);
+        
+        input.append(inner_cell);
 
         var output = $('<div></div>');
         cell.append(input).append(output);
@@ -208,6 +213,12 @@ define([
         this.completer = new completer.Completer(this, this.events);
     };
 
+    /** @method create_element */
+    CodeCell.prototype.create_element = function () {
+        CodeCell.prototype.create_element_gen.call(this, 'code_cell');
+    }
+    
+    
     /** @method bind_events */
     CodeCell.prototype.bind_events = function () {
         Cell.prototype.bind_events.apply(this, arguments);
@@ -320,11 +331,8 @@ define([
         this.kernel = kernel;
     };
 
-    /**
-     * Execute current code cell to the kernel
-     * @method execute
-     */
-    CodeCell.prototype.execute = function (stop_on_error) {
+    CodeCell.prototype.execute_core = function (stop_on_error, code) {
+
         if (!this.kernel) {
             console.log(i18n.msg._("Can't execute cell since kernel is not set."));
             return;
@@ -350,7 +358,7 @@ define([
             delete CodeCell.msg_cells[old_msg_id];
             this.last_msg_id = null;
         }
-        if (this.get_text().trim().length === 0) {
+        if (code.trim().length === 0) {
             // nothing to do
             this.set_input_prompt(null);
             return;
@@ -359,7 +367,7 @@ define([
         this.element.addClass("running");
         var callbacks = this.get_callbacks();
         
-        this.last_msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true,
+        this.last_msg_id = this.kernel.execute(code, callbacks, {silent: false, store_history: true,
             stop_on_error : stop_on_error});
         CodeCell.msg_cells[this.last_msg_id] = this;
         this.render();
@@ -372,6 +380,15 @@ define([
               }
         }
         this.events.on('finished_iopub.Kernel', handleFinished);
+
+    };
+
+    /**
+     * Execute current code cell to the kernel
+     * @method execute
+     */
+    CodeCell.prototype.execute = function (stop_on_error) {
+        CodeCell.prototype.execute_core.call(this, stop_on_error, this.get_text())
     };
     
     /**
@@ -551,7 +568,7 @@ define([
 
     CodeCell.prototype.fromJSON = function (data) {
         Cell.prototype.fromJSON.apply(this, arguments);
-        if (data.cell_type === 'code') {
+        if (data.cell_type === 'code' || data.cell_type === 'literate') { // NEW
             if (data.source !== undefined) {
                 this.set_text(data.source);
                 // make this value the starting point, so that we can only undo

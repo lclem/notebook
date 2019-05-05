@@ -48,6 +48,12 @@ define([
          *          config: dictionary
          *          keyboard_manager: KeyboardManager instance
          */
+
+        // NEW
+        if (this.called_already)
+            return;
+        this.called_already = true;
+
         options = options || {};
         this.keyboard_manager = options.keyboard_manager;
         this.events = options.events;

@@ -38,7 +38,7 @@ define([
          * Constructor
          *
          * Construct a new TextCell, codemirror mode is by default 'htmlmixed', 
-         * and cell type is 'text' cell start as not redered.
+         * and cell type is 'text' cell start as not rendered.
          *
          * Parameters:
          *  options: dictionary
@@ -373,72 +373,82 @@ define([
         reader.readAsDataURL(blob);
     };
 
+    MarkdownCell.prototype.render_core = function (text) {
+
+        console.log("MarkdownCell.prototype.render_core");
+
+        var that = this;
+        var math = null;
+        if (text === "") { text = this.placeholder; }
+        var text_and_math = mathjaxutils.remove_math(text);
+        text = text_and_math[0];
+        math = text_and_math[1];
+        // Prevent marked from returning inline styles for table cells
+        var renderer = new marked.Renderer();
+        renderer.tablecell = function (content, flags) {
+            var type = flags.header ? 'th' : 'td';
+            var style = flags.align == null ? '': ' style="text-align: ' + flags.align + '"';
+            var start_tag = '<' + type + style + '>';
+            var end_tag = '</' + type + '>\n';
+            return start_tag + content + end_tag;
+        };
+        marked(text, { renderer: renderer }, function (err, html) {
+            html = mathjaxutils.replace_math(html, math);
+            html = $(security.sanitize_html_and_parse(html));
+            // add anchors to headings
+            html.find(":header").addBack(":header").each(function (i, h) {
+                h = $(h);
+                var hash = h.text().replace(/ /g, '-');
+                h.attr('id', hash);
+                h.append(
+                    $('<a/>')
+                        .addClass('anchor-link')
+                        .attr('href', '#' + hash)
+                        .text('¶')
+                        .on('click',function(){
+                            setTimeout(function(){that.unrender(); that.render()}, 100)
+                        })
+                );
+            });
+            // links in markdown cells should open in new tabs
+            html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
+            // replace attachment:<key> by the corresponding entry
+            // in the cell's attachments
+            html.find('img[src^="attachment:"]').each(function (i, h) {
+                h = $(h);
+                var key = h.attr('src').replace(/^attachment:/, '');
+
+                if (that.attachments.hasOwnProperty(key)) {
+                var att = that.attachments[key];
+                var mime = Object.keys(att)[0];
+                h.attr('src', 'data:' + mime + ';base64,' + att[mime]);
+                } else {
+                h.attr('src', '');
+                }
+            });
+            that.set_rendered(html);
+            that.typeset();
+            that.events.trigger("rendered.MarkdownCell", {cell: that});
+        });
+    };
+
     /**
      * @method render
      */
     MarkdownCell.prototype.render = function () {
         // We clear the dropzone here just in case the dragenter/leave
         // logic of bind_events wasn't 100% successful.
+
+        console.log("MarkdownCell.prototype.render");
+
         this.drag_counter = 0;
         this.inner_cell.removeClass('dropzone');
 
         var cont = TextCell.prototype.render.apply(this);
         if (cont) {
-            var that = this;
-            var text = this.get_text();
-            var math = null;
-            if (text === "") { text = this.placeholder; }
-            var text_and_math = mathjaxutils.remove_math(text);
-            text = text_and_math[0];
-            math = text_and_math[1];
-            // Prevent marked from returning inline styles for table cells
-            var renderer = new marked.Renderer();
-            renderer.tablecell = function (content, flags) {
-              var type = flags.header ? 'th' : 'td';
-              var style = flags.align == null ? '': ' style="text-align: ' + flags.align + '"';
-              var start_tag = '<' + type + style + '>';
-              var end_tag = '</' + type + '>\n';
-              return start_tag + content + end_tag;
-            };
-            marked(text, { renderer: renderer }, function (err, html) {
-                html = mathjaxutils.replace_math(html, math);
-                html = $(security.sanitize_html_and_parse(html));
-                // add anchors to headings
-                html.find(":header").addBack(":header").each(function (i, h) {
-                    h = $(h);
-                    var hash = h.text().replace(/ /g, '-');
-                    h.attr('id', hash);
-                    h.append(
-                        $('<a/>')
-                            .addClass('anchor-link')
-                            .attr('href', '#' + hash)
-                            .text('¶')
-                            .on('click',function(){
-                                setTimeout(function(){that.unrender(); that.render()}, 100)
-                            })
-                    );
-                });
-                // links in markdown cells should open in new tabs
-                html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
-                // replace attachment:<key> by the corresponding entry
-                // in the cell's attachments
-                html.find('img[src^="attachment:"]').each(function (i, h) {
-                  h = $(h);
-                  var key = h.attr('src').replace(/^attachment:/, '');
-
-                  if (that.attachments.hasOwnProperty(key)) {
-                    var att = that.attachments[key];
-                    var mime = Object.keys(att)[0];
-                    h.attr('src', 'data:' + mime + ';base64,' + att[mime]);
-                  } else {
-                    h.attr('src', '');
-                  }
-                });
-                that.set_rendered(html);
-                that.typeset();
-                that.events.trigger("rendered.MarkdownCell", {cell: that});
-            });
+            MarkdownCell.prototype.render_core.apply(this, this.get_text());
         }
+        
         return cont;
     };
 

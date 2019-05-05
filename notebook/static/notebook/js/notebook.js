@@ -15,7 +15,7 @@ define([
     './cell',
     './textcell',
     './codecell',
-//    './literatecell',
+    './literatecell',
     'moment',
     'services/config',
     'services/sessions/session',
@@ -44,7 +44,7 @@ define([
     cellmod,
     textcell,
     codecell,
-//    literatecell,
+    literatecell,
     moment,
     configmod,
     session,
@@ -1271,7 +1271,7 @@ define([
      *
      * Index will be brought back into the accessible range [0,n].
      *
-     * @param {string} [type] - in ['code','markdown', 'raw'], defaults to 'code'
+     * @param {string} [type] - in ['code','markdown', 'raw', 'literate'], defaults to 'code'
      * @param {integer} [index] - a valid index where to insert cell
      * @return {Cell|null} created cell or null
      */
@@ -1317,9 +1317,9 @@ define([
             case 'raw':
                 cell = new textcell.RawCell(cell_options);
                 break;
-//            case 'literate':
-//                cell = new literatecell.LiterateCell(this.kernel, cell_options);
-//                break;
+            case 'literate':
+                cell = new literatecell.LiterateCell(this.kernel, cell_options);
+                break;
             default:
                 console.log("Unrecognized cell type: ", type, cellmod);
                 cell = new cellmod.UnrecognizedCell(cell_options);
@@ -1602,7 +1602,7 @@ define([
         if (this.is_valid_cell_index(i)) {
             var source_cell = this.get_cell(i);
 
-            if (!(source_cell instanceof textcell.LiterateCell) && source_cell.is_editable()) {
+            if (!(source_cell instanceof literatecell.LiterateCell) && source_cell.is_editable()) {
                 var target_cell = this.insert_cell_below('literate',i);
                 var text = source_cell.get_text();
 
@@ -1860,7 +1860,7 @@ define([
         }
 
         // Update the contents of the target cell
-        if (target instanceof codecell.CodeCell) {
+        if (target instanceof codecell.CodeCell || target instanceof literatecell.LiterateCell) {
             target.set_text(contents.join('\n\n'));
         } else {
             var was_rendered = target.rendered;
@@ -2021,7 +2021,7 @@ define([
     Notebook.prototype.collapse_output = function (index) {
         var i = this.index_or_selected(index);
         var cell = this.get_cell(i);
-        if (cell !== null && (cell instanceof codecell.CodeCell)) {
+        if (cell !== null && (cell instanceof codecell.CodeCell || cell instanceof literatecell.LiterateCell)) {
             cell.collapse_output();
             this.set_dirty(true);
         }
@@ -2032,7 +2032,7 @@ define([
      */
     Notebook.prototype.collapse_all_output = function () {
         this.get_cells().map(function (cell) {
-            if (cell instanceof codecell.CodeCell) {
+            if (cell instanceof codecell.CodeCell || cell instanceof literatecell.LiterateCell) {
                 cell.collapse_output();
             }
         });
@@ -2048,7 +2048,7 @@ define([
     Notebook.prototype.expand_output = function (index) {
         var i = this.index_or_selected(index);
         var cell = this.get_cell(i);
-        if (cell !== null && (cell instanceof codecell.CodeCell)) {
+        if (cell !== null && (cell instanceof codecell.CodeCell || cell instanceof literatecell.LiterateCell)) {
             cell.expand_output();
             this.set_dirty(true);
         }
@@ -2059,7 +2059,7 @@ define([
      */
     Notebook.prototype.expand_all_output = function () {
         this.get_cells().map(function (cell) {
-            if (cell instanceof codecell.CodeCell) {
+            if (cell instanceof codecell.CodeCell || cell instanceof literatecell.LiterateCell) {
                 cell.expand_output();
             }
         });
@@ -2075,7 +2075,7 @@ define([
     Notebook.prototype.clear_output = function (index) {
         var i = this.index_or_selected(index);
         var cell = this.get_cell(i);
-        if (cell !== null && (cell instanceof codecell.CodeCell)) {
+        if (cell !== null && (cell instanceof codecell.CodeCell || cell instanceof literatecell.LiterateCell)) {
             cell.clear_output();
             this.set_dirty(true);
         }
@@ -2100,7 +2100,7 @@ define([
      */
     Notebook.prototype.clear_all_output = function () {
         this.get_cells().map(function (cell) {
-            if (cell instanceof codecell.CodeCell) {
+            if (cell instanceof codecell.CodeCell || cell instanceof literatecell.LiterateCell) {
                 cell.clear_output();
             }
         });
@@ -2115,7 +2115,7 @@ define([
     Notebook.prototype.scroll_output = function (index) {
         var i = this.index_or_selected(index);
         var cell = this.get_cell(i);
-        if (cell !== null && (cell instanceof codecell.CodeCell)) {
+        if (cell !== null && (cell instanceof codecell.CodeCell || cell instanceof literatecell.LiterateCell)) {
             cell.scroll_output();
             this.set_dirty(true);
         }
@@ -2126,7 +2126,7 @@ define([
      */
     Notebook.prototype.scroll_all_output = function () {
         this.get_cells().map(function (cell, i) {
-            if (cell instanceof codecell.CodeCell) {
+            if (cell instanceof codecell.CodeCell || cell instanceof literatecell.LiterateCell) {
                 cell.scroll_output();
             }
         });
@@ -2142,7 +2142,7 @@ define([
     Notebook.prototype.toggle_output = function (index) {
         var i = this.index_or_selected(index);
         var cell = this.get_cell(i);
-        if (cell !== null && (cell instanceof codecell.CodeCell)) {
+        if (cell !== null && (cell instanceof codecell.CodeCell || cell instanceof literatecell.LiterateCell)) {
             cell.toggle_output();
             this.set_dirty(true);
         }
@@ -2168,7 +2168,7 @@ define([
      */
     Notebook.prototype.toggle_all_output = function () {
         this.get_cells().map(function (cell) {
-            if (cell instanceof codecell.CodeCell) {
+            if (cell instanceof codecell.CodeCell || cell instanceof literatecell.LiterateCell) {
                 cell.toggle_output();
             }
         });
@@ -2184,7 +2184,7 @@ define([
     Notebook.prototype.toggle_output_scroll = function (index) {
         var i = this.index_or_selected(index);
         var cell = this.get_cell(i);
-        if (cell !== null && (cell instanceof codecell.CodeCell)) {
+        if (cell !== null && (cell instanceof codecell.CodeCell || cell instanceof literatecell.LiterateCell)) {
             cell.toggle_output_scroll();
             this.set_dirty(true);
         }
@@ -2210,7 +2210,7 @@ define([
      */
     Notebook.prototype.toggle_all_output_scroll = function () {
         this.get_cells().map(function (cell) {
-            if (cell instanceof codecell.CodeCell) {
+            if (cell instanceof codecell.CodeCell || cell instanceof literatecell.LiterateCell) {
                 cell.toggle_output_scroll();
             }
         });
@@ -2232,8 +2232,9 @@ define([
     Notebook.prototype._dispatch_mode = function(spec, newmode){
         this.codemirror_mode = newmode;
         codecell.CodeCell.options_default.cm_config.mode = newmode;
+        literatecell.LiterateCell.options_default.cm_config.mode = newmode; // NEW
         this.get_cells().map(function(cell) {
-            if (cell.cell_type === 'code'){
+            if (cell.cell_type === 'code' || cell.cell_type === 'literate'){ // NEW
                 cell.code_mirror.setOption('mode', spec);
                 // This is currently redundant, because cm_config ends up as
                 // codemirror's own .options object, but I don't want to
@@ -2315,7 +2316,7 @@ define([
         var ncells = this.ncells();
         for (var i=0; i<ncells; i++) {
             var cell = this.get_cell(i);
-            if (cell instanceof codecell.CodeCell) {
+            if (cell instanceof codecell.CodeCell || cell instanceof literatecell.LiterateCell) {
                 cell.set_kernel(this.session.kernel);
             }
         }
@@ -2702,7 +2703,7 @@ define([
             cell_data = new_cells[i];
             new_cell = this.insert_cell_at_index(cell_data.cell_type, i);
             new_cell.fromJSON(cell_data);
-            if (new_cell.cell_type === 'code' && !new_cell.output_area.trusted) {
+            if ((new_cell.cell_type === 'code' || new_cell.cell_type === 'literate') && !new_cell.output_area.trusted) { // NEW
                 trusted = false;
             }
         }
@@ -2728,7 +2729,7 @@ define([
         var trusted = true;
         for (var i=0; i<ncells; i++) {
             var cell = cells[i];
-            if (cell.cell_type === 'code' && !cell.output_area.trusted) {
+            if ((cell.cell_type === 'code' || cell.cell_type === 'literate') && !cell.output_area.trusted) { // NEW
                 trusted = false;
             }
             cell_array[i] = cell.toJSON(true);
@@ -3060,7 +3061,7 @@ define([
                         var cells = nb.get_cells();
                         for (var i = 0; i < cells.length; i++) {
                             var cell = cells[i];
-                            if (cell.cell_type === 'code') {
+                            if (cell.cell_type === 'code' || cell.cell_type === 'literate') { // NEW
                                 cell.output_area.trusted = true;
                             }
                         }

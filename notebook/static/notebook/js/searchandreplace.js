@@ -311,7 +311,7 @@ define([
         var oldvalue = cell.code_mirror.getValue();
         var newvalue = oldvalue.replace(reg , replaceValue);
         cell.code_mirror.setValue(newvalue);
-        if (cell.cell_type === 'markdown') {
+        if (cell.cell_type === 'markdown' || cell.cell_type === 'literate') { // NEW
           cell.rendered = false;
           cell.render();
         }
