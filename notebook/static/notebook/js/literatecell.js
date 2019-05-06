@@ -108,6 +108,9 @@ define([
 
         CodeCell.prototype.create_element_core.call(this, 'literate_cell', LiterateCell.options_default.cm_config);
 
+        // activate spell checking on the markdown area
+        $(this.code_mirror.getInputField()).attr("spellcheck", "true"); 
+
         var render_area = $('<div/>').addClass('text_cell_render rendered_html').attr('tabindex','-1');
         this.inner_cell.append(render_area); 
 
@@ -207,7 +210,7 @@ define([
 
     LiterateCell.prototype.toJSON = function () {
         var data = MarkdownCell.prototype.toJSON.apply(this);
-        //data.source = this.get_text();
+
         // is finite protect against undefined and '*' value
         if (isFinite(this.input_prompt_number)) {
             data.execution_count = this.input_prompt_number;
