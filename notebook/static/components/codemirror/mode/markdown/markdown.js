@@ -231,12 +231,12 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
       // NEW
       var newMode = null;
 
-      console.log("match[0]: " + match[0]);
-      console.log("match[1]: " + match[1]);
-      console.log("match[2]: " + match[2]);
+      //console.log("match[0]: " + match[0]);
+      //console.log("match[1]: " + match[1]);
+      //console.log("match[2]: " + match[2]);
 
       if (match[0] == '````') {
-        newMode = getMode("agda");
+        newMode = getMode("agda"); // TODO: Load local mode!
         console.log("newMode is agda!");
 
       }

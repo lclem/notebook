@@ -116,18 +116,28 @@ define([
     LiterateCell.prototype.execute = function (stop_on_error) {
 
         var text = this.get_text();
-        console.log("Current text: " + text);
+        //console.log("Current text: " + text);
 
         // extract blocks of code between executable code chunks markers "````"
         var blocks = text.split('````');
 
         // we are interested in odd blocks        
         var code = "";
-        for (var i = 1; i < blocks.length; i += 2) {
-            code += blocks[i];
+        for (var i = 0; i < blocks.length; i++) {
+
+            // even blocks contain markup code and are replaced by blank lines;
+            // this helps the kernel giving error messages with the correct line numbers
+            if (i % 2 == 0) { 
+                var lines = blocks[i].split('\n');
+                for (var j = 0; j < lines.length; j++) {
+                    code += "\n";
+                }
+            }
+            else // odd blocks contain executable code
+                code += blocks[i];
         }
 
-        console.log("Extracted executable code chunks: \n" + code);
+        //console.log("Extracted executable code chunks: \n" + code);
 
         CodeCell.prototype.execute_core.call(this, stop_on_error, code);
         LiterateCell.prototype.render.call(this);
@@ -160,7 +170,7 @@ define([
         else
             code = text
 
-        console.log("Extracted executable code chunks: \n" + code);
+        //console.log("Extracted executable code chunks: \n" + code);
 
         var cont = CodeCell.prototype.render.apply(this, arguments);
         cont = MarkdownCell.prototype.render_core.call(this, code);
@@ -168,23 +178,34 @@ define([
         
     };
 
-    CodeCell.prototype.fromJSON = function (data) {
-        MarkdownCell.prototype.fromJSON.apply(this, arguments);
+    LiterateCell.prototype.fromJSON = function (data) {
+        Cell.prototype.fromJSON.apply(this, arguments);
         if (data.cell_type === 'literate') { // NEW
+
+            if (data.attachments !== undefined) {
+                this.attachments = data.attachments;
+            }
+
             if (data.source !== undefined) {
-                //this.set_text(data.source);
+                this.set_text(data.source);
                 // make this value the starting point, so that we can only undo
                 // to this state, instead of a blank cell
                 this.code_mirror.clearHistory();
                 this.auto_highlight();
+                // TODO: This HTML needs to be treated as potentially dangerous
+                // user input and should be handled before set_rendered.
+                this.set_rendered(data.rendered || '');
+                this.rendered = false;
+                this.render();
             }
+
             this.set_input_prompt(data.execution_count);
             this.output_area.trusted = data.metadata.trusted || false;
             this.output_area.fromJSON(data.outputs, data.metadata);
         }
     };
 
-    CodeCell.prototype.toJSON = function () {
+    LiterateCell.prototype.toJSON = function () {
         var data = MarkdownCell.prototype.toJSON.apply(this);
         //data.source = this.get_text();
         // is finite protect against undefined and '*' value
